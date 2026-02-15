@@ -1,0 +1,5 @@
+python-feedgen source: file-without-copyright-information
+python-feedgen source: no-debian-changes
+python-feedgen source: source-contains-prebuilt-windows-binary
+python-feedgen source: source-is-missing
+python-feedgen source: source-package-encodes-python-version

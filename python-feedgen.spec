@@ -1,67 +1,107 @@
-%global pypi_name feedgen
-%global pypi_version 1.0.0
+# Copyright 2026 Wong Hoi Sing Edison <hswong3i@pantarei-design.com>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-Name:           python-%{pypi_name}
-Version:        %{pypi_version}
-Release:        1%{?dist}
-Summary:        Feed Generator (ATOM, RSS, Podcasts)
+%global debug_package %{nil}
 
-License:        BSD or LGPLv3
-URL:            http://lkiesow.github.io/python-feedgen
-#Source0:        https://github.com/lkiesow/%{name}/archive/v%{version}.tar.gz
-Source0:        %{pypi_source}
-BuildArch:      noarch
+%global source_date_epoch_from_changelog 0
 
-BuildRequires:  python3-devel
-BuildRequires:  python3dist(setuptools)
-BuildRequires:  python3dist(lxml)
-BuildRequires:  python3dist(python-dateutil)
+Name: python-feedgen
+Epoch: 100
+Version: 1.0.0
+Release: 1%{?dist}
+BuildArch: noarch
+Summary: Feed Generator (ATOM, RSS, Podcasts)
+License: BSD-2-Clause OR LGPL-3.0-or-later
+URL: https://github.com/lkiesow/python-feedgen/tags
+Source0: %{name}_%{version}.orig.tar.gz
+BuildRequires: fdupes
+BuildRequires: python-rpm-macros
+BuildRequires: python3-devel
+BuildRequires: python3-pip
 
 %description
-Feedgenerator: This module can be used to generate web feeds in both ATOM and
-RSS format. It has support for extensions. Included is for example an extension
-to produce Podcasts.
-
-%package -n     python3-%{pypi_name}
-Summary:        %{summary}
-%{?python_provide:%python_provide python3-%{pypi_name}}
-
-Requires:       python3dist(python-dateutil)
-Requires:       python3dist(lxml)
-
-%description -n python3-%{pypi_name}
-Feedgenerator: This module can be used to generate web feeds in both ATOM and
-RSS format. It has support for extensions. Included is for example an extension
-to produce Podcasts.
-
+This module can be used to generate web feeds in both ATOM and RSS
+format. It has support for extensions. Included is for example an
+extension to produce Podcasts.
 
 %prep
-%autosetup -n %{pypi_name}-%{pypi_version}
-# Remove bundled egg-info
-rm -rf %{pypi_name}.egg-info
+%autosetup -T -c -n %{name}_%{version}-%{release}
+tar -zx -f %{S:0} --strip-components=1 -C .
 
 %build
-%py3_build
+pip wheel \
+    --no-deps \
+    --no-build-isolation \
+    --wheel-dir=dist \
+    .
 
 %install
-%py3_install
+pip install \
+    --no-deps \
+    --ignore-installed \
+    --root=%{buildroot} \
+    --prefix=%{_prefix} \
+    dist/*.whl
+find %{buildroot}%{python3_sitelib} -type f -name '*.pyc' -exec rm -rf {} \;
+fdupes -qnrps %{buildroot}%{python3_sitelib}
 
 %check
-%{__python3} setup.py test
 
-%files -n python3-%{pypi_name}
-%license license.lgpl license.bsd
-%doc readme.rst
-%{python3_sitelib}/%{pypi_name}
-%{python3_sitelib}/%{pypi_name}-%{version}-py?.?.egg-info
+%if 0%{?suse_version} >= 1500
+%package -n python%{python3_version_nodots}-feedgen
+Summary: Feed Generator (ATOM, RSS, Podcasts)
+Requires: python3
+Requires: python3-lxml
+Requires: python3-dateutil
+Provides: python3-feedgen = %{epoch}:%{version}-%{release}
+Provides: python3dist(feedgen) = %{epoch}:%{version}-%{release}
+Provides: python%{python3_version}-feedgen = %{epoch}:%{version}-%{release}
+Provides: python%{python3_version}dist(feedgen) = %{epoch}:%{version}-%{release}
+Provides: python%{python3_version_nodots}-feedgen = %{epoch}:%{version}-%{release}
+Provides: python%{python3_version_nodots}dist(feedgen) = %{epoch}:%{version}-%{release}
+
+%description -n python%{python3_version_nodots}-feedgen
+This module can be used to generate web feeds in both ATOM and RSS
+format. It has support for extensions. Included is for example an
+extension to produce Podcasts.
+
+%files -n python%{python3_version_nodots}-feedgen
+%license license.bsd
+%{python3_sitelib}/*
+%endif
+
+%if !(0%{?suse_version} >= 1500)
+%package -n python3-feedgen
+Summary: Feed Generator (ATOM, RSS, Podcasts)
+Requires: python3
+Requires: python3-lxml
+Requires: python3-dateutil
+Provides: python3-feedgen = %{epoch}:%{version}-%{release}
+Provides: python3dist(feedgen) = %{epoch}:%{version}-%{release}
+Provides: python%{python3_version}-feedgen = %{epoch}:%{version}-%{release}
+Provides: python%{python3_version}dist(feedgen) = %{epoch}:%{version}-%{release}
+Provides: python%{python3_version_nodots}-feedgen = %{epoch}:%{version}-%{release}
+Provides: python%{python3_version_nodots}dist(feedgen) = %{epoch}:%{version}-%{release}
+
+%description -n python3-feedgen
+This module can be used to generate web feeds in both ATOM and RSS
+format. It has support for extensions. Included is for example an
+extension to produce Podcasts.
+
+%files -n python3-feedgen
+%license license.bsd
+%{python3_sitelib}/*
+%endif
 
 %changelog
-* Mon Dec 25 2023 Lars Kiesow <lkiesow@uos.de> - 1.0.0-1
-- Update to 1.0.0
-- Removing support for Python 2
-
-* Sat May 19 2018 Lars Kiesow <lkiesow@uos.de> - 0.7.0-1
-- Update to 0.7.0
-
-* Tue Oct 24 2017 Lumir Balhar <lbalhar@redhat.com> - 0.6.1-1
-- Initial package.

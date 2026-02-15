@@ -1,0 +1,4 @@
+python3-feedgen: copyright-without-copyright-notice
+python3-feedgen: initial-upload-closes-no-bugs
+python3-feedgen: no-manual-page
+python3-feedgen: zero-byte-file-in-doc-directory
